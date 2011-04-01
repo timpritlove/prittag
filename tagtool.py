@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 #############################################################################
-#  tagtool - a tool to transfer id3 tags from a mp3 to an ogg or mp3 file   #
+#  tagtool - a tool for tagging mp3, ogg and aac files                      #
 #                                                                           #
 #  Copyright (c) 2010 Nils Mehrtens                                         #
 #                                                                           #
@@ -25,6 +25,7 @@ import base64
 import string
 import re
 import logging
+import argparse
 
 from mutagen.mp3 import MP3
 from mutagen.oggvorbis import OggVorbis
