@@ -29,10 +29,8 @@ import argparse
 
 from mutagen.mp3 import MP3
 from mutagen.oggvorbis import OggVorbis
+from mutagen.mp4 import MP4, MP4Cover
 import mutagen.id3 as id3
-
-
-COVER_TAG_PIC = os.path.join(os.path.dirname(__file__), 'Radiotux_ID3Tag.jpg')
 
 class NullHandler(logging.Handler):
     def emit(self, record):
@@ -41,70 +39,16 @@ class NullHandler(logging.Handler):
 logger = logging.getLogger("tagtool")
 logger.addHandler(NullHandler())
 
-def transfer_tags_of_file(mp3, destination):
-    if source_mp3_is_ok(mp3):
-        logger.info('reading tags from %s' % mp3)
-        tags = read_tags_from_mp3(mp3)
-        logger.info('writing tags to %s' % destination)
-        file_type = get_file_type(destination)
-        if file_type == 'ogg':
-            write_tags_to_ogg(destination, tags)
-        elif file_type == 'mp3':
-            write_tags_to_mp3(destination, tags)
-        else:
-            raise TypeError("%s is neither a mp3 nor an ogg file" % path)
-
-
-def source_mp3_is_ok(path):
-    if not os.path.exists(path):
-        raise TypeError("%s dosen't exist" % path)
-    elif not os.path.isfile(path):
-        raise TypeError("%s isn't a file" % path)
-    elif os.path.splitext(path)[1] not in ['.mp3', '.MP3']:
-        raise TypeError("%s isn't a mp3 file" % path)
+def tag_file(path, tags):
+    file_type = get_file_type(path)
+    if file_type == 'ogg':
+        write_tags_to_ogg(path, tags)
+    elif file_type == 'mp3':
+        write_tags_to_mp3(path, tags)
+    elif file_type in ['mp4', 'm4a', 'aac']:
+        write_tags_to_mp4(path, tags)
     else:
-        return True
-
-
-def read_tags_from_mp3(path):
-    tags = get_default_tags()
-    audio = MP3(path)
-    filename = os.path.split(path)[1]
-    filename_tags = get_tags_from_filename(filename)
-    tags.update(filename_tags)
-    for tag in ['TIT2', 'TPE1', 'TALB', 'TDRC', 'TCOP', 'WXXX:']:
-        if audio.has_key(tag):
-            tags[tag] = unicode(audio[tag])
-        else:
-            if not tags.has_key(tag):
-                tags[tag] = ''
-    return tags
-
-def get_default_tags():
-    tags = {'TPE1' : 'RadioTux Team',
-            'TALB' : 'RadioTux',
-            'TCOP' : 'cc by-nc-sa de',
-            'WXXX:' : 'http://radiotux.de'}
-    return tags
-
-filename_reg = re.compile('(\d{4})-\d{2}-\d{2}\.RadioTux\.(.+?)\.(.+?)(\.mp3|\.ogg)')
-num_only_reg = re.compile('\d+')
-def get_tags_from_filename(filename):
-    tags = {}
-    result = re.search(filename_reg,filename)
-    if result:
-        date, format, title = result.groups()
-        if re.match(num_only_reg,title):
-            num = title
-            title = 'RadioTux %s #%s' % (format, num)
-        else:
-            title = 'Radiotux %s %s' % (format, title)
-        tags['TIT2'] = unicode(title)
-        tags['TDRC'] = unicode(date)
-    else:
-        logger.warn('Parsing filename "%s" failed' % (str(filename)))
-    return tags
-
+        raise TypeError("%s is neither a mp3 nor an ogg nor an mp4 file" % path)
 
 def get_file_type(path):
     ext = os.path.splitext(path)[1]
@@ -112,21 +56,21 @@ def get_file_type(path):
     ext = ext.lower()
     return ext
 
-
 def write_tags_to_ogg(path, tags):
     audio = OggVorbis(path)
-    for dest, source in [['TITLE', 'TIT2'], ['ARTIST', 'TPE1'],
+    for dest, source in [['TITLE', 'TIT2'], ['PERFORMER', 'TPE1'],
                          ['ALBUM', 'TALB'], ['DATE', 'TDRC'],
-                         ['COPYRIGHT', 'TCOP'], ['LICENSE', 'WXXX:']]:
+                         ['ARTIST', 'TCOM'], ['GENRE', 'TCON']]:
         audio[dest] = tags[source]
-    audio['coverartmime'] = 'image/jpeg'
-    audio['coverartdescription'] = 'Radiotux_ID3Tag.jpg'
-    audio['coverart'] = get_ogg_coverart()
-    audio.save()
+    if 'COVER' in tags:
+        audio['coverartmime'] = 'image/jpeg'
+        audio['coverartdescription'] = 'Cover'
+        audio['coverart'] = get_ogg_coverart(tags['COVER'])
+        audio.save()
 
 
-def get_ogg_coverart():
-    f = open(COVER_TAG_PIC, 'rb')
+def get_ogg_coverart(path):
+    f = open(path, 'rb')
     data = f.read()
     f.close()
     data = base64.b64encode(data)
@@ -139,28 +83,49 @@ def write_tags_to_mp3(path, tags):
     audio['TPE1'] = id3.TPE1(encoding=3, text=tags['TPE1'])
     audio['TALB'] = id3.TALB(encoding=3, text=tags['TALB'])
     audio['TDRC'] = id3.TDRC(encoding=3, text=tags['TDRC'])
-    audio['TCOP'] = id3.TCOP(encoding=3, text=tags['TCOP'])
-    audio['WXXX'] = id3.WXXX(encoding=3, url=tags['WXXX:'])
-    image = get_mp3_coverart()
-    image = id3.APIC(3, 'image/jpeg', 0, 'Radiotux_ID3Tag.jpg', image)
-    audio[image.HashKey] = image
+    audio['TCOM'] = id3.TCOM(encoding=3, text=tags['TCOM'])
+    audio['TCON'] = id3.TCON(encoding=3, text=tags['TCON'])
+    if 'COVER' in tags:
+        image = get_mp3_coverart(tags['COVER'])
+        image = id3.APIC(3, 'image/jpeg', 0, 'Cover', image)
+        audio[image.HashKey] = image
     audio.save()
 
 
-def get_mp3_coverart():
-    f = open(COVER_TAG_PIC, 'rb')
+def get_mp3_coverart(path):
+    f = open(path, 'rb')
     data = f.read()
     f.close()
     return str(data)
 
 
 if __name__ == "__main__":
-    print 'Tagtool (c) Copyright 2010 Nils Mehrtens (for details see gpl.txt)'
-    if len(sys.argv) != 3:
-        print 'usage: %s <mp3 to read from> <ogg/mp3 to write to>' % sys.argv[0]
-        sys.exit(1)
-    else:
-        logging.basicConfig(level=logging.DEBUG,
-                            format='%(asctime)s %(levelname)s:%(module)s %(message)s')
+    print '''Tagtool  Copyright (C) 2011 Nils Mehrtens
+This program comes with ABSOLUTELY NO WARRANTY.
+This is free software, and you are welcome to redistribute it
+under certain conditions; see http://www.gnu.org/licenses/gpl.html for details.
+'''
+    logging.basicConfig(level=logging.DEBUG,
+                        format='%(asctime)s %(levelname)s:%(module)s %(message)s')
+    parser = argparse.ArgumentParser()
+    parser.add_argument('files', nargs = '+', help = 'A file that shall be tagged (one of mp3, ogg, mp4)',
+                       metavar = 'file')
+    parser.add_argument('-t', '--title')
+    parser.add_argument('-al', '--album')
+    parser.add_argument('-ar', '--artist')
+    parser.add_argument('-p', '--performer')
+    parser.add_argument('-d', '--date')
+    parser.add_argument('-g', '--genre')
+    parser.add_argument('-c', '--cover', help = 'JPG file containing the cover')
+    args =  parser.parse_args()
 
-        transfer_tags_of_file(sys.argv[1], sys.argv[2])
+    tags = {}
+    for arg, dest in [[args.title, 'TIT2'], [args.album, 'TALB'], [args.artist,'TPE1'],
+             [args.performer, 'TCOM'], [args.date, 'TDRC'], [args.genre, 'TCON'],
+             [args.cover, 'COVER']]:
+        if arg != None:
+            tags[dest] = arg
+
+    for file in args.files:
+        logging.info('Tagging %s' % file)
+        tag_file(file, tags)
