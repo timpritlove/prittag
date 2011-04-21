@@ -79,12 +79,11 @@ def get_ogg_coverart(path):
 
 def write_tags_to_mp3(path, tags):
     audio = MP3(path)
-    audio['TIT2'] = id3.TIT2(encoding=3, text=tags['TIT2'])
-    audio['TPE1'] = id3.TPE1(encoding=3, text=tags['TPE1'])
-    audio['TALB'] = id3.TALB(encoding=3, text=tags['TALB'])
-    audio['TDRC'] = id3.TDRC(encoding=3, text=tags['TDRC'])
-    audio['TCOM'] = id3.TCOM(encoding=3, text=tags['TCOM'])
-    audio['TCON'] = id3.TCON(encoding=3, text=tags['TCON'])
+    for i, tag in [['TIT2', id3.TIT2], ['TPE1', id3.TPE1], ['TALB', id3.TALB],
+                   ['TDRC', id3.TDRC], ['TCOM', id3.TCOM], ['TCON', id3.TCON]]:
+        if i in tags:
+
+            audio[i] = tag(encoding=3, text=tags[i])
     if 'COVER' in tags:
         image = get_mp3_coverart(tags['COVER'])
         image = id3.APIC(3, 'image/jpeg', 0, 'Cover', image)
@@ -125,7 +124,6 @@ under certain conditions; see http://www.gnu.org/licenses/gpl.html for details.
              [args.cover, 'COVER']]:
         if arg != None:
             tags[dest] = arg
-
     for file in args.files:
         logging.info('Tagging %s' % file)
         tag_file(file, tags)
