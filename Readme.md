@@ -16,3 +16,14 @@ It writes the following tags to multiple Ogg, MP3 or MP4 files:
 Additionally it can add a albumart (cover) to them.
 
 The name was chosen according to the amazing tool [prittorrent](https://github.com/astro/prittorrent).
+
+Dependencies
+============
+
+- [Python 2.7](http://python.org) or [Python 2.6](http://python.org) with [argparse](http://code.google.com/p/argparse/) module
+- [Mutagen](http://code.google.com/p/mutagen/)
+
+Installation
+============
+- Download it to a place of your choice
+- Call it from the command line (try ./prittag.py --help for a overview)
