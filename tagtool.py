@@ -48,7 +48,7 @@ def tag_file(path, tags):
     elif file_type in ['mp4', 'm4a', 'aac']:
         write_tags_to_mp4(path, tags)
     else:
-        raise TypeError("%s is neither a mp3 nor an ogg nor an mp4 file" % path)
+        raise TypeError("%s is neither a mp3 nor an ogg nor a mp4 file" % path)
 
 def get_file_type(path):
     ext = os.path.splitext(path)[1]
@@ -61,7 +61,8 @@ def write_tags_to_ogg(path, tags):
     for dest, source in [['TITLE', 'TIT2'], ['PERFORMER', 'TPE1'],
                          ['ALBUM', 'TALB'], ['DATE', 'TDRC'],
                          ['ARTIST', 'TCOM'], ['GENRE', 'TCON']]:
-        audio[dest] = tags[source]
+        if source in tags:
+            audio[dest] = tags[source]
     if 'COVER' in tags:
         audio['coverartmime'] = 'image/jpeg'
         audio['coverartdescription'] = 'Cover'
@@ -70,9 +71,8 @@ def write_tags_to_ogg(path, tags):
 
 
 def get_ogg_coverart(path):
-    f = open(path, 'rb')
-    data = f.read()
-    f.close()
+    with open(path, 'rb') as f:
+        data = f.read()
     data = base64.b64encode(data)
     return data
 
@@ -92,9 +92,8 @@ def write_tags_to_mp3(path, tags):
 
 
 def get_mp3_coverart(path):
-    f = open(path, 'rb')
-    data = f.read()
-    f.close()
+    with open(path, 'rb') as f:
+        data = f.read()
     return str(data)
 
 
