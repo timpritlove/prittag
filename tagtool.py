@@ -98,6 +98,22 @@ def get_mp3_coverart(path):
         data = f.read()
     return str(data)
 
+def write_tags_to_mp4(path, tags):
+    audio = MP4(path)
+    for dest, source in [['\xa9nam', 'TIT2'], ['\xa9wrt', 'TCOM'],
+                         ['\xa9alb', 'TALB'], ['\xa9day','TDRC'],
+                         ['\xa9ART', 'TPE1'], ['\xa9gen', 'TCON']]:
+        if source in tags:
+            audio[dest] = tags[source]
+    if 'COVER' in tags:
+        audio['covr'] = [get_mp4_coverart(tags['COVER'])]
+    audio.save()
+
+def get_mp4_coverart(path):
+    with open(path, 'rb') as f:
+        data = f.read()
+    cover = MP4Cover(data)
+    return cover
 
 if __name__ == "__main__":
     print '''Tagtool  Copyright (C) 2011 Nils Mehrtens
