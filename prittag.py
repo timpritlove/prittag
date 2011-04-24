@@ -116,7 +116,7 @@ def get_mp4_coverart(path):
     return cover
 
 if __name__ == "__main__":
-    print '''Tagtool  Copyright (C) 2011 Nils Mehrtens
+    print '''prittag  Copyright (C) 2011 Nils Mehrtens
 This program comes with ABSOLUTELY NO WARRANTY.
 This is free software, and you are welcome to redistribute it
 under certain conditions; see http://www.gnu.org/licenses/gpl.html for details.
