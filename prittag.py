@@ -2,15 +2,15 @@
 # -*- coding: utf-8 -*-
 
 #############################################################################
-#  tagtool - a tool for tagging mp3, ogg and aac files                      #
+#  prittag - a tool for tagging mp3, ogg and aac files                      #
 #                                                                           #
 #  Copyright (c) 2010 Nils Mehrtens                                         #
 #                                                                           #
-#  tagtool is free software; you can redistribute it and/or modify it       #
+#  prittag is free software; you can redistribute it and/or modify it       #
 #  under the terms of the GNU General Public License                        #
 #  as published by the Free Software Foundation;                            #
 #  either version 3 of the License, or (at your option) any later version.  #
-#  tagtool is distributed in the hope that it will be useful, but           #
+#  prittag is distributed in the hope that it will be useful, but           #
 #  WITHOUT ANY WARRANTY; without even the implied warranty of               #
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.                     #
 #  See the GNU General Public License for more details.                     #
@@ -38,7 +38,7 @@ class NullHandler(logging.Handler):
     def emit(self, record):
         pass
 
-logger = logging.getLogger("tagtool")
+logger = logging.getLogger("prittag")
 logger.addHandler(NullHandler())
 
 def tag_file(path, tags):
