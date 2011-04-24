@@ -41,7 +41,7 @@ logger.addHandler(NullHandler())
 
 def tag_file(path, tags):
     file_type = get_file_type(path)
-    if file_type == 'ogg':
+    if file_type in ['ogg', 'oga']:
         write_tags_to_ogg(path, tags)
     elif file_type == 'mp3':
         write_tags_to_mp3(path, tags)
