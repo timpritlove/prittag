@@ -32,6 +32,8 @@ from mutagen.oggvorbis import OggVorbis
 from mutagen.mp4 import MP4, MP4Cover
 import mutagen.id3 as id3
 
+CMD_ENCODING = sys.getfilesystemencoding() or sys.getdefaultencoding()
+
 class NullHandler(logging.Handler):
     def emit(self, record):
         pass
@@ -58,9 +60,9 @@ def get_file_type(path):
 
 def write_tags_to_ogg(path, tags):
     audio = OggVorbis(path)
-    for dest, source in [['TITLE', 'TIT2'], ['PERFORMER', 'TPE1'],
+    for dest, source in [['TITLE', 'TIT2'], ['COMPOSER', 'TCOM'],
                          ['ALBUM', 'TALB'], ['DATE', 'TDRC'],
-                         ['ARTIST', 'TCOM'], ['GENRE', 'TCON']]:
+                         ['ARTIST', 'TPE1'], ['GENRE', 'TCON']]:
         if source in tags:
             audio[dest] = tags[source]
     if 'COVER' in tags:
@@ -111,18 +113,18 @@ under certain conditions; see http://www.gnu.org/licenses/gpl.html for details.
     parser.add_argument('-t', '--title')
     parser.add_argument('-al', '--album')
     parser.add_argument('-ar', '--artist')
-    parser.add_argument('-p', '--performer')
+    parser.add_argument('-co', '--composer')
     parser.add_argument('-d', '--date')
     parser.add_argument('-g', '--genre')
-    parser.add_argument('-c', '--cover', help = 'JPG file containing the cover')
+    parser.add_argument('-cv', '--cover', help = 'JPG file containing the cover')
     args =  parser.parse_args()
 
     tags = {}
     for arg, dest in [[args.title, 'TIT2'], [args.album, 'TALB'], [args.artist,'TPE1'],
-             [args.performer, 'TCOM'], [args.date, 'TDRC'], [args.genre, 'TCON'],
+             [args.composer, 'TCOM'], [args.date, 'TDRC'], [args.genre, 'TCON'],
              [args.cover, 'COVER']]:
         if arg != None:
-            tags[dest] = arg
+            tags[dest] = arg.decode(CMD_ENCODING)
     for file in args.files:
         logging.info('Tagging %s' % file)
         tag_file(file, tags)
