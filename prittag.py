@@ -24,22 +24,22 @@ import os
 import base64
 import string
 import re
-import logging
-import argparse
+from xml.etree import ElementTree
 
 from mutagen.mp3 import MP3
 from mutagen.oggvorbis import OggVorbis
 from mutagen.mp4 import MP4, MP4Cover
 import mutagen.id3 as id3
 
-CMD_ENCODING = sys.getfilesystemencoding() or sys.getdefaultencoding()
-
-class NullHandler(logging.Handler):
-    def emit(self, record):
-        pass
-
-logger = logging.getLogger("prittag")
-logger.addHandler(NullHandler())
+def parse_xml(path):
+    tags = {}
+    with open(path, 'r') as f:
+        xml = ElementTree.XML(f.read())
+    for child in xml.getchildren():
+        key = str(child.tag)
+        value = unicode(child.text)
+        tags[key] = value
+    return tags
 
 def tag_file(path, tags):
     file_type = get_file_type(path)
@@ -60,9 +60,9 @@ def get_file_type(path):
 
 def write_tags_to_ogg(path, tags):
     audio = OggVorbis(path)
-    for dest, source in [['TITLE', 'TIT2'], ['COMPOSER', 'TCOM'],
-                         ['ALBUM', 'TALB'], ['DATE', 'TDRC'],
-                         ['ARTIST', 'TPE1'], ['GENRE', 'TCON']]:
+    for dest, source in [['TITLE', 'title'], ['COMPOSER', 'compser'],
+                         ['ALBUM', 'ambum'], ['DATE', 'date'],
+                         ['ARTIST', 'artist'], ['GENRE', 'genre']]:
         if source in tags:
             audio[dest] = tags[source]
     if 'COVER' in tags:
@@ -81,13 +81,13 @@ def get_ogg_coverart(path):
 
 def write_tags_to_mp3(path, tags):
     audio = MP3(path)
-    for i, tag in [['TIT2', id3.TIT2], ['TPE1', id3.TPE1], ['TALB', id3.TALB],
-                   ['TDRC', id3.TDRC], ['TCOM', id3.TCOM], ['TCON', id3.TCON]]:
+    for i, tag in [['title', id3.TIT2], ['artist', id3.TPE1], ['album', id3.TALB],
+                   ['date', id3.TDRC], ['composer', id3.TCOM], ['genre', id3.TCON]]:
         if i in tags:
 
             audio[i] = tag(encoding=3, text=tags[i])
-    if 'COVER' in tags:
-        image = get_mp3_coverart(tags['COVER'])
+    if 'cover' in tags:
+        image = get_mp3_coverart(tags['cover'])
         image = id3.APIC(3, 'image/jpeg', 0, 'Cover', image)
         audio[image.HashKey] = image
     audio.save()
@@ -100,13 +100,13 @@ def get_mp3_coverart(path):
 
 def write_tags_to_mp4(path, tags):
     audio = MP4(path)
-    for dest, source in [['\xa9nam', 'TIT2'], ['\xa9wrt', 'TCOM'],
-                         ['\xa9alb', 'TALB'], ['\xa9day','TDRC'],
-                         ['\xa9ART', 'TPE1'], ['\xa9gen', 'TCON']]:
+    for dest, source in [['\xa9nam', 'title'], ['\xa9wrt', 'compser'],
+                         ['\xa9alb', 'album'], ['\xa9day','date'],
+                         ['\xa9ART', 'artist'], ['\xa9gen', 'genre']]:
         if source in tags:
             audio[dest] = tags[source]
-    if 'COVER' in tags:
-        audio['covr'] = [get_mp4_coverart(tags['COVER'])]
+    if 'cover' in tags:
+        audio['covr'] = [get_mp4_coverart(tags['cover'])]
     audio.save()
 
 def get_mp4_coverart(path):
@@ -121,26 +121,21 @@ This program comes with ABSOLUTELY NO WARRANTY.
 This is free software, and you are welcome to redistribute it
 under certain conditions; see http://www.gnu.org/licenses/gpl.html for details.
 '''
-    logging.basicConfig(level=logging.DEBUG,
-                        format='%(asctime)s %(levelname)s:%(module)s %(message)s')
-    parser = argparse.ArgumentParser()
-    parser.add_argument('files', nargs = '+', help = 'A file that shall be tagged (one of mp3, ogg, mp4)',
-                       metavar = 'file')
-    parser.add_argument('-t', '--title')
-    parser.add_argument('-al', '--album')
-    parser.add_argument('-ar', '--artist')
-    parser.add_argument('-co', '--composer')
-    parser.add_argument('-d', '--date')
-    parser.add_argument('-g', '--genre')
-    parser.add_argument('-cv', '--cover', help = 'JPG file containing the cover')
-    args =  parser.parse_args()
-
-    tags = {}
-    for arg, dest in [[args.title, 'TIT2'], [args.album, 'TALB'], [args.artist,'TPE1'],
-             [args.composer, 'TCOM'], [args.date, 'TDRC'], [args.genre, 'TCON'],
-             [args.cover, 'COVER']]:
-        if arg != None:
-            tags[dest] = arg.decode(CMD_ENCODING)
-    for file in args.files:
-        logging.info('Tagging %s' % file)
-        tag_file(file, tags)
+    if len(sys.argv) < 3:
+        print 'usage: %s <xml file with tags> <file to tag> [<file to tag> ...]' % sys.argv[0]
+        sys.exit(1)
+    else:
+        args = sys.argv[1:]
+        for path in args:
+            if not os.path.exists(path):
+                print "%s doesn't exist." % path
+                sys.exit(1)
+            elif not os.path.isfile(path):
+                print "%s is not a file." % path
+                sys.exit(1)
+        config = args[0]
+        files = args[1:]
+        tags = parse_xml(config)
+        for file in files:
+            print "Tagging %s ..." % file
+            tag_file(file, tags)
