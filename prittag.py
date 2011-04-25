@@ -82,10 +82,14 @@ def get_ogg_coverart(path):
 def write_tags_to_mp3(path, tags):
     audio = MP3(path)
     for i, tag in [['title', 'TIT2'], ['artist', 'TPE1'], ['album', 'TALB'],
-                   ['date', 'TDRC'], ['composer', 'TCOM'], ['genre', 'TCON']]:
+                   ['date', 'TDRC'], ['composer', 'TCOM'], ['genre', 'TCON'],
+                   ['lyrics', 'USLT']]:
         if i in tags:
-
-            audio[tag] = id3.Frames[tag](encoding=3, text=tags[i])
+            if tag == 'USLT':
+                tag = id3.Frames[tag](encoding=3, text=tags[i], desc='', lang='eng')
+                audio[tag.HashKey] = tag
+            else:
+                audio[tag] = id3.Frames[tag](encoding=3, text=tags[i])
     if 'cover' in tags:
         image = get_mp3_coverart(tags['cover'])
         image = id3.APIC(3, 'image/jpeg', 0, 'Cover', image)
