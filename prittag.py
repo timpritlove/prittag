@@ -65,7 +65,8 @@ def write_tags_to_ogg(path, tags):
                          ['ARTIST', 'artist'], ['GENRE', 'genre'],
                          ['ALBUMARTIST', 'albumartist'],
                          ['TRACKNUMBER', 'tracknumber'],
-                         ['TRACKTOTAL', 'numberoftracks']]:
+                         ['TRACKTOTAL', 'numberoftracks'], ['DISCNUMBER',
+                          'cdnumber']]:
         if source in tags:
             audio[dest] = tags[source]
     if 'cover' in tags:
@@ -86,7 +87,8 @@ def write_tags_to_mp3(path, tags):
     audio = MP3(path)
     for i, tag in [['title', 'TIT2'], ['artist', 'TPE1'], ['album', 'TALB'],
                    ['date', 'TDRC'], ['composer', 'TCOM'], ['genre', 'TCON'],
-                   ['lyrics', 'USLT'], ['albumartist', 'TPE2']]:
+                   ['lyrics', 'USLT'], ['albumartist', 'TPE2'],
+                   ['cdnumber', 'TPOS']]:
         if i in tags:
             if tag == 'USLT':
                 tag = id3.Frames[tag](encoding=3, text=tags[i], desc='', lang='eng')
@@ -128,6 +130,12 @@ def write_tags_to_mp4(path, tags):
         else:
             num_tracks = 0
         audio['trkn'] = [(int(tags['tracknumber']), num_tracks)]
+    if 'cdnumber' in tags:
+        if 'numberofcds' in tags:
+            num_cds = int(tags['numberofcds'])
+        else:
+            num_cds = 0
+        audio['disk'] = [(int(tags['cdnumber']), num_cds)]
     if 'cover' in tags:
         audio['covr'] = [get_mp4_coverart(tags['cover'])]
     audio.save()
