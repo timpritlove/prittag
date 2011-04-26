@@ -104,11 +104,12 @@ def get_mp3_coverart(path):
 
 def write_tags_to_mp4(path, tags):
     audio = MP4(path)
-    for dest, source in [['\xa9nam', 'title'], ['\xa9wrt', 'compser'],
+    for dest, source in [['\xa9nam', 'title'], ['\xa9wrt', 'composer'],
                          ['\xa9alb', 'album'], ['\xa9day','date'],
-                         ['\xa9ART', 'artist'], ['\xa9gen', 'genre']]:
+                         ['\xa9ART', 'artist'], ['\xa9gen', 'genre'],
+                         ['\xa9lyr', 'lyrics']]:
         if source in tags:
-            audio[dest] = tags[source]
+            audio[dest] = [tags[source]]
     if 'cover' in tags:
         audio['covr'] = [get_mp4_coverart(tags['cover'])]
     audio.save()
