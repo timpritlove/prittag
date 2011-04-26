@@ -20,10 +20,17 @@ The name was chosen according to the amazing tool [prittorrent](https://github.c
 Dependencies
 ============
 
-- [Python 2.7](http://python.org) or [Python 2.6](http://python.org) with [argparse](http://code.google.com/p/argparse/) module
+- [Python 2.6](http://python.org) or higher (Not Python 3.x)
 - [Mutagen](http://code.google.com/p/mutagen/)
 
 Installation
 ============
 - Download it to a place of your choice
-- Call it from the command line (try ./prittag.py --help for a overview)
+- Install all dependencies
+
+Usage
+=====
+- Prittag expects a XML file and at least one audio file as arguments.
+- The XML file tells prittag which tags it should write into the files.
+- It is expected to look like example.xml.
+- Call it from the command line like this: "./prittag.py foo.xml bar.mp3 bar.oga bar.m4a"
