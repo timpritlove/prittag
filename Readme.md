@@ -7,11 +7,18 @@ I created this version to serve the request made by Tim Pritlove in the [episode
 It writes the following tags to multiple Ogg, MP3 or MP4 files:
 
 - album
+- album artist
 - artist
+- cd number
+- comment
 - composer
 - date
 - genre
+- lyrics
+- number of cds
+- number of tracks
 - title
+- track number
 
 Additionally it can add a albumart (cover) to them.
 
