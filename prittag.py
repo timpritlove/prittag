@@ -62,7 +62,8 @@ def write_tags_to_ogg(path, tags):
     audio = OggVorbis(path)
     for dest, source in [['TITLE', 'title'], ['COMPOSER', 'compser'],
                          ['ALBUM', 'ambum'], ['DATE', 'date'],
-                         ['ARTIST', 'artist'], ['GENRE', 'genre']]:
+                         ['ARTIST', 'artist'], ['GENRE', 'genre'],
+                         ['ALBUMARTIST', 'albumartist']]:
         if source in tags:
             audio[dest] = tags[source]
     if 'COVER' in tags:
@@ -83,7 +84,7 @@ def write_tags_to_mp3(path, tags):
     audio = MP3(path)
     for i, tag in [['title', 'TIT2'], ['artist', 'TPE1'], ['album', 'TALB'],
                    ['date', 'TDRC'], ['composer', 'TCOM'], ['genre', 'TCON'],
-                   ['lyrics', 'USLT']]:
+                   ['lyrics', 'USLT'], ['albumartist', 'TPE2']]:
         if i in tags:
             if tag == 'USLT':
                 tag = id3.Frames[tag](encoding=3, text=tags[i], desc='', lang='eng')
@@ -107,7 +108,7 @@ def write_tags_to_mp4(path, tags):
     for dest, source in [['\xa9nam', 'title'], ['\xa9wrt', 'composer'],
                          ['\xa9alb', 'album'], ['\xa9day','date'],
                          ['\xa9ART', 'artist'], ['\xa9gen', 'genre'],
-                         ['\xa9lyr', 'lyrics']]:
+                         ['\xa9lyr', 'lyrics'], ['aART', 'albumartist']]:
         if source in tags:
             audio[dest] = [tags[source]]
     if 'cover' in tags:
