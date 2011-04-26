@@ -6,5 +6,21 @@
     <date>1998</date>
     <genre>Podcasts</genre>
     <title>1# NSFW Aufbruch ins Ungewisse</title>
+    <lyrics>
+	Test
+	test
+	1
+	2
+	3
+	3456778
+	foo bar
+	23 42
+    </lyrics>
+    <albumartist>Various</albumartist>
+    <tracknumber>1</tracknumber>
+    <numberoftracks>1</numberoftracks>
+    <cdnumber>1</cdnumber>
+    <numberofcds>1</numberofcds>
+    <comment>A Comment</comment>
     <cover>cover.jpg</cover>
 </tags>
