@@ -60,18 +60,20 @@ def get_file_type(path):
 
 def write_tags_to_ogg(path, tags):
     audio = OggVorbis(path)
-    for dest, source in [['TITLE', 'title'], ['COMPOSER', 'compser'],
-                         ['ALBUM', 'ambum'], ['DATE', 'date'],
+    for dest, source in [['TITLE', 'title'], ['COMPOSER', 'composer'],
+                         ['ALBUM', 'album'], ['DATE', 'date'],
                          ['ARTIST', 'artist'], ['GENRE', 'genre'],
-                         ['ALBUMARTIST', 'albumartist']]:
+                         ['ALBUMARTIST', 'albumartist'],
+                         ['TRACKNUMBER', 'tracknumber'],
+                         ['TRACKTOTAL', 'numberoftracks']]:
         if source in tags:
             audio[dest] = tags[source]
-    if 'COVER' in tags:
+    if 'cover' in tags:
         audio['coverartmime'] = 'image/jpeg'
         audio['coverartdescription'] = 'Cover'
-        audio['coverart'] = get_ogg_coverart(tags['COVER'])
-        audio.save()
-
+        audio['coverarttype'] = '3'
+        audio['coverart'] = get_ogg_coverart(tags['cover'])
+    audio.save()
 
 def get_ogg_coverart(path):
     with open(path, 'rb') as f:
@@ -90,7 +92,16 @@ def write_tags_to_mp3(path, tags):
                 tag = id3.Frames[tag](encoding=3, text=tags[i], desc='', lang='eng')
                 audio[tag.HashKey] = tag
             else:
-                audio[tag] = id3.Frames[tag](encoding=3, text=tags[i])
+                tag = id3.Frames[tag](encoding=3, text=tags[i])
+                audio[tag.HashKey] = tag
+    if 'tracknumber' in tags:
+        if 'numberoftracks' in tags:
+            num_tracks = tags['numberoftracks']
+        else:
+            num_tracks = 0
+        track_num = "%d/%d" % (int(tags['tracknumber']), int(num_tracks))
+        tag = id3.Frames['TRCK'](encoding=3, text=track_num)
+        audio[tag.HashKey] = tag
     if 'cover' in tags:
         image = get_mp3_coverart(tags['cover'])
         image = id3.APIC(3, 'image/jpeg', 3, 'Cover', image)
@@ -111,6 +122,12 @@ def write_tags_to_mp4(path, tags):
                          ['\xa9lyr', 'lyrics'], ['aART', 'albumartist']]:
         if source in tags:
             audio[dest] = [tags[source]]
+    if 'tracknumber' in tags:
+        if 'numberoftracks' in tags:
+            num_tracks = int(tags['numberoftracks'])
+        else:
+            num_tracks = 0
+        audio['trkn'] = [(int(tags['tracknumber']), num_tracks)]
     if 'cover' in tags:
         audio['covr'] = [get_mp4_coverart(tags['cover'])]
     audio.save()
