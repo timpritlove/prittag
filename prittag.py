@@ -66,7 +66,7 @@ def write_tags_to_ogg(path, tags):
                          ['ALBUMARTIST', 'albumartist'],
                          ['TRACKNUMBER', 'tracknumber'],
                          ['TRACKTOTAL', 'numberoftracks'], ['DISCNUMBER',
-                          'cdnumber']]:
+                          'cdnumber'], ['COMMENT', 'comment']]:
         if source in tags:
             audio[dest] = tags[source]
     if 'cover' in tags:
@@ -88,10 +88,13 @@ def write_tags_to_mp3(path, tags):
     for i, tag in [['title', 'TIT2'], ['artist', 'TPE1'], ['album', 'TALB'],
                    ['date', 'TDRC'], ['composer', 'TCOM'], ['genre', 'TCON'],
                    ['lyrics', 'USLT'], ['albumartist', 'TPE2'],
-                   ['cdnumber', 'TPOS']]:
+                   ['cdnumber', 'TPOS'], ['comment', 'COMM']]:
         if i in tags:
             if tag == 'USLT':
                 tag = id3.Frames[tag](encoding=3, text=tags[i], desc='', lang='eng')
+                audio[tag.HashKey] = tag
+            elif tag == 'COMM':
+                tag = id3.Frames[tag](encoding=3, text=tags[i], lang='eng')
                 audio[tag.HashKey] = tag
             else:
                 tag = id3.Frames[tag](encoding=3, text=tags[i])
@@ -121,7 +124,8 @@ def write_tags_to_mp4(path, tags):
     for dest, source in [['\xa9nam', 'title'], ['\xa9wrt', 'composer'],
                          ['\xa9alb', 'album'], ['\xa9day','date'],
                          ['\xa9ART', 'artist'], ['\xa9gen', 'genre'],
-                         ['\xa9lyr', 'lyrics'], ['aART', 'albumartist']]:
+                         ['\xa9lyr', 'lyrics'], ['aART', 'albumartist'],
+                         ['\xa9cmt', 'comment']]:
         if source in tags:
             audio[dest] = [tags[source]]
     if 'tracknumber' in tags:
