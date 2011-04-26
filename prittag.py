@@ -92,7 +92,7 @@ def write_tags_to_mp3(path, tags):
                 audio[tag] = id3.Frames[tag](encoding=3, text=tags[i])
     if 'cover' in tags:
         image = get_mp3_coverart(tags['cover'])
-        image = id3.APIC(3, 'image/jpeg', 0, 'Cover', image)
+        image = id3.APIC(3, 'image/jpeg', 3, 'Cover', image)
         audio[image.HashKey] = image
     audio.save()
 
