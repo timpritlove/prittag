@@ -9,16 +9,16 @@ It writes the following tags to multiple Ogg, MP3 or MP4 files:
 - album
 - album artist
 - artist
-- cd number
 - comment
 - composer
 - date
+- disk
 - genre
 - lyrics
-- number of cds
+- number of disks
 - number of tracks
 - title
-- track number
+- track
 
 Additionally it can add a albumart (cover) to them.
 
@@ -32,12 +32,26 @@ Dependencies
 
 Installation
 ============
-- Download it to a place of your choice
-- Install all dependencies
+Download it to a place of your choice
+Install all dependencies
 
 Usage
 =====
-- Prittag expects a XML file and at least one audio file as arguments.
-- The XML file tells prittag which tags it should write into the files.
-- It is expected to look like example.xml.
-- Call it from the command line like this: "./prittag.py foo.xml bar.mp3 bar.oga bar.m4a"
+Prittag expects a XML file and at least one audio file as arguments.
+The XML file tells prittag which tags it should write into the files and is expected to look like example.xml.
+By default prittag will perform a  white space stripping on every tag and every line of multi line tags.
+You can enable and disable this as well globally as for every single tag by adding the option "string_stripping" and setting it either to "true" or false.
+For example:
+
+```xml
+    <?xml version="1.0" encoding="UTF-8" ?>
+    <tags string_stripping="false">
+	<title>FooBar</title>
+	<lyrics string_stripping="true">
+	Foo
+	Bar
+	</lyrics>
+    </tags>
+```
+
+Call it from the command line like this: "./prittag.py foo.xml bar.mp3 bar.oga bar.m4a"
