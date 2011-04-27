@@ -33,13 +33,41 @@ import mutagen.id3 as id3
 
 def parse_xml(path):
     tags = {}
+    disable_string_stripping_globally = False
     with open(path, 'r') as f:
         xml = ElementTree.XML(f.read())
+        if 'string_stripping' in xml.keys():
+            if xml.get('string_stripping') in ['0', 'false', 'False']:
+                disable_string_stripping_globally = True
     for child in xml.getchildren():
         key = str(child.tag)
         value = unicode(child.text)
+        if disable_string_stripping_globally:
+            if 'string_stripping' in child.keys():
+                if child.get('string_stripping') in ['1', 'true', 'True']:
+                    value = strip_string(value)
+        else:
+            if 'string_stripping' in child.keys():
+                if child.get('string_stripping') not in ['0', 'false', 'False']:
+                    value = strip_string(value)
+            else:
+                value = strip_string(value)
+
         tags[key] = value
+        print '"%s"' % value
     return tags
+
+def strip_string(string):
+    if len(string.splitlines()) > 1:
+        new_string = '\n'.join([i.strip() for i in string.splitlines()])
+        new_string = new_string[1:] #remove at the beginning of the string
+        if string[len(string)-1] != '\n':
+            new_string = new_string[:len(new_string)-1]
+            #remove \n at the end of the string if wasn't present before
+        return new_string
+
+    else:
+        return string.strip()
 
 def tag_file(path, tags):
     file_type = get_file_type(path)
