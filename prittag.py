@@ -24,6 +24,7 @@ import os
 import base64
 import string
 import re
+import traceback
 from xml.etree import ElementTree
 
 from mutagen.mp3 import MP3
@@ -34,8 +35,18 @@ import mutagen.id3 as id3
 def parse_xml(path):
     tags = {}
     disable_string_stripping_globally = False
-    with open(path, 'r') as f:
-        xml = ElementTree.XML(f.read())
+    try:
+        with open(path, 'r') as f:
+            data = f.read()
+    except:
+        print 'failed to read %s' % str(path)
+        sys.exit(1)
+    try:
+        xml = ElementTree.XML(data)
+    except:
+        print 'parsing XML failed!'
+        traceback.print_exc()
+        sys.exit(1)
         if 'string_stripping' in xml.keys():
             if xml.get('string_stripping') in ['0', 'false', 'False']:
                 disable_string_stripping_globally = True
@@ -54,6 +65,23 @@ def parse_xml(path):
                 value = strip_string(value)
 
         tags[key] = value
+    if len(tags) < len(xml.getchildren()):
+        print "Error: there are duplicate tags!"
+        sys.exit(1)
+    for tag in tags:
+        bad = False
+        if tag in ['track', 'number-of-tracks', 'disc', 'number-of-discs']:
+            value = tags[tag]
+            try:
+                value = int(value)
+            except:
+                bad = True
+            if value < 0:
+                bad = True
+        if bad:
+            print 'Bad value in <%s>: "%s" is not a positive integer!' % (str(tag),
+                                                                       str(value))
+            sys.exit(1)
     return tags
 
 def strip_string(string):
