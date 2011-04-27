@@ -54,7 +54,6 @@ def parse_xml(path):
                 value = strip_string(value)
 
         tags[key] = value
-        print '"%s"' % value
     return tags
 
 def strip_string(string):
