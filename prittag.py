@@ -63,10 +63,10 @@ def write_tags_to_ogg(path, tags):
     for dest, source in [['TITLE', 'title'], ['COMPOSER', 'composer'],
                          ['ALBUM', 'album'], ['DATE', 'date'],
                          ['ARTIST', 'artist'], ['GENRE', 'genre'],
-                         ['ALBUMARTIST', 'albumartist'],
-                         ['TRACKNUMBER', 'tracknumber'],
-                         ['TRACKTOTAL', 'numberoftracks'], ['DISCNUMBER',
-                          'cdnumber'], ['COMMENT', 'comment']]:
+                         ['ALBUMARTIST', 'album-artist'],
+                         ['TRACKNUMBER', 'track'],
+                         ['TRACKTOTAL', 'number-of-tracks'], ['DISCNUMBER',
+                          'disc'], ['COMMENT', 'comment']]:
         if source in tags:
             audio[dest] = tags[source]
     if 'cover' in tags:
@@ -87,8 +87,8 @@ def write_tags_to_mp3(path, tags):
     audio = MP3(path)
     for i, tag in [['title', 'TIT2'], ['artist', 'TPE1'], ['album', 'TALB'],
                    ['date', 'TDRC'], ['composer', 'TCOM'], ['genre', 'TCON'],
-                   ['lyrics', 'USLT'], ['albumartist', 'TPE2'],
-                   ['cdnumber', 'TPOS'], ['comment', 'COMM']]:
+                   ['lyrics', 'USLT'], ['album-artist', 'TPE2'],
+                   ['disc', 'TPOS'], ['comment', 'COMM']]:
         if i in tags:
             if tag == 'USLT':
                 tag = id3.Frames[tag](encoding=3, text=tags[i], desc='', lang='eng')
@@ -99,12 +99,12 @@ def write_tags_to_mp3(path, tags):
             else:
                 tag = id3.Frames[tag](encoding=3, text=tags[i])
                 audio[tag.HashKey] = tag
-    if 'tracknumber' in tags:
-        if 'numberoftracks' in tags:
-            num_tracks = tags['numberoftracks']
+    if 'track' in tags:
+        if 'number-of-tracks' in tags:
+            num_tracks = tags['number-of-tracks']
         else:
             num_tracks = 0
-        track_num = "%d/%d" % (int(tags['tracknumber']), int(num_tracks))
+        track_num = "%d/%d" % (int(tags['track']), int(num_tracks))
         tag = id3.Frames['TRCK'](encoding=3, text=track_num)
         audio[tag.HashKey] = tag
     if 'cover' in tags:
@@ -124,22 +124,22 @@ def write_tags_to_mp4(path, tags):
     for dest, source in [['\xa9nam', 'title'], ['\xa9wrt', 'composer'],
                          ['\xa9alb', 'album'], ['\xa9day','date'],
                          ['\xa9ART', 'artist'], ['\xa9gen', 'genre'],
-                         ['\xa9lyr', 'lyrics'], ['aART', 'albumartist'],
+                         ['\xa9lyr', 'lyrics'], ['aART', 'album-artist'],
                          ['\xa9cmt', 'comment']]:
         if source in tags:
             audio[dest] = [tags[source]]
-    if 'tracknumber' in tags:
-        if 'numberoftracks' in tags:
-            num_tracks = int(tags['numberoftracks'])
+    if 'track' in tags:
+        if 'number-of-tracks' in tags:
+            num_tracks = int(tags['number-of-tracks'])
         else:
             num_tracks = 0
-        audio['trkn'] = [(int(tags['tracknumber']), num_tracks)]
-    if 'cdnumber' in tags:
-        if 'numberofcds' in tags:
-            num_cds = int(tags['numberofcds'])
+        audio['trkn'] = [(int(tags['track']), num_tracks)]
+    if 'disc' in tags:
+        if 'number-of-discs' in tags:
+            num_disks = int(tags['number-of-discs'])
         else:
-            num_cds = 0
-        audio['disk'] = [(int(tags['cdnumber']), num_cds)]
+            num_disks = 0
+        audio['disk'] = [(int(tags['disc']), num_disks)]
     if 'cover' in tags:
         audio['covr'] = [get_mp4_coverart(tags['cover'])]
     audio.save()

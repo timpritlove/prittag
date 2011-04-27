@@ -16,11 +16,11 @@
 	foo bar
 	23 42
     </lyrics>
-    <albumartist>Various</albumartist>
-    <tracknumber>1</tracknumber>
-    <numberoftracks>1</numberoftracks>
-    <cdnumber>1</cdnumber>
-    <numberofcds>1</numberofcds>
+    <album-artist>Various</album-artist>
+    <track>1</track>
+    <number-of-tracks>1</number-of-tracks>
+    <disc>1</disc>
+    <number-of-discs>1</number-of-discs>
     <comment>A Comment</comment>
     <cover>cover.jpg</cover>
 </tags>
