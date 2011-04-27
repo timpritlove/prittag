@@ -24,6 +24,7 @@ import os
 import base64
 import string
 import re
+import traceback
 from xml.etree import ElementTree
 
 from mutagen.mp3 import MP3
@@ -33,13 +34,67 @@ import mutagen.id3 as id3
 
 def parse_xml(path):
     tags = {}
-    with open(path, 'r') as f:
-        xml = ElementTree.XML(f.read())
+    disable_string_stripping_globally = False
+    try:
+        with open(path, 'r') as f:
+            data = f.read()
+    except:
+        print 'failed to read %s' % str(path)
+        sys.exit(1)
+    try:
+        xml = ElementTree.XML(data)
+    except:
+        print 'parsing XML failed!'
+        traceback.print_exc()
+        sys.exit(1)
+        if 'string_stripping' in xml.keys():
+            if xml.get('string_stripping') in ['0', 'false', 'False']:
+                disable_string_stripping_globally = True
     for child in xml.getchildren():
         key = str(child.tag)
         value = unicode(child.text)
+        if disable_string_stripping_globally:
+            if 'string_stripping' in child.keys():
+                if child.get('string_stripping') in ['1', 'true', 'True']:
+                    value = strip_string(value)
+        else:
+            if 'string_stripping' in child.keys():
+                if child.get('string_stripping') not in ['0', 'false', 'False']:
+                    value = strip_string(value)
+            else:
+                value = strip_string(value)
+
         tags[key] = value
+    if len(tags) < len(xml.getchildren()):
+        print "Error: there are duplicate tags!"
+        sys.exit(1)
+    for tag in tags:
+        bad = False
+        if tag in ['track', 'number-of-tracks', 'disc', 'number-of-discs']:
+            value = tags[tag]
+            try:
+                value = int(value)
+            except:
+                bad = True
+            if value < 0:
+                bad = True
+        if bad:
+            print 'Bad value in <%s>: "%s" is not a positive integer!' % (str(tag),
+                                                                       str(value))
+            sys.exit(1)
     return tags
+
+def strip_string(string):
+    if len(string.splitlines()) > 1:
+        new_string = '\n'.join([i.strip() for i in string.splitlines()])
+        new_string = new_string[1:] #remove at the beginning of the string
+        if string[len(string)-1] != '\n':
+            new_string = new_string[:len(new_string)-1]
+            #remove \n at the end of the string if wasn't present before
+        return new_string
+
+    else:
+        return string.strip()
 
 def tag_file(path, tags):
     file_type = get_file_type(path)
@@ -63,10 +118,10 @@ def write_tags_to_ogg(path, tags):
     for dest, source in [['TITLE', 'title'], ['COMPOSER', 'composer'],
                          ['ALBUM', 'album'], ['DATE', 'date'],
                          ['ARTIST', 'artist'], ['GENRE', 'genre'],
-                         ['ALBUMARTIST', 'albumartist'],
-                         ['TRACKNUMBER', 'tracknumber'],
-                         ['TRACKTOTAL', 'numberoftracks'], ['DISCNUMBER',
-                          'cdnumber'], ['COMMENT', 'comment']]:
+                         ['ALBUMARTIST', 'album-artist'],
+                         ['TRACKNUMBER', 'track'],
+                         ['TRACKTOTAL', 'number-of-tracks'], ['DISCNUMBER',
+                          'disc'], ['COMMENT', 'comment']]:
         if source in tags:
             audio[dest] = tags[source]
     if 'cover' in tags:
@@ -87,8 +142,8 @@ def write_tags_to_mp3(path, tags):
     audio = MP3(path)
     for i, tag in [['title', 'TIT2'], ['artist', 'TPE1'], ['album', 'TALB'],
                    ['date', 'TDRC'], ['composer', 'TCOM'], ['genre', 'TCON'],
-                   ['lyrics', 'USLT'], ['albumartist', 'TPE2'],
-                   ['cdnumber', 'TPOS'], ['comment', 'COMM']]:
+                   ['lyrics', 'USLT'], ['album-artist', 'TPE2'],
+                   ['disc', 'TPOS'], ['comment', 'COMM']]:
         if i in tags:
             if tag == 'USLT':
                 tag = id3.Frames[tag](encoding=3, text=tags[i], desc='', lang='eng')
@@ -99,12 +154,12 @@ def write_tags_to_mp3(path, tags):
             else:
                 tag = id3.Frames[tag](encoding=3, text=tags[i])
                 audio[tag.HashKey] = tag
-    if 'tracknumber' in tags:
-        if 'numberoftracks' in tags:
-            num_tracks = tags['numberoftracks']
+    if 'track' in tags:
+        if 'number-of-tracks' in tags:
+            num_tracks = tags['number-of-tracks']
         else:
             num_tracks = 0
-        track_num = "%d/%d" % (int(tags['tracknumber']), int(num_tracks))
+        track_num = "%d/%d" % (int(tags['track']), int(num_tracks))
         tag = id3.Frames['TRCK'](encoding=3, text=track_num)
         audio[tag.HashKey] = tag
     if 'cover' in tags:
@@ -124,22 +179,22 @@ def write_tags_to_mp4(path, tags):
     for dest, source in [['\xa9nam', 'title'], ['\xa9wrt', 'composer'],
                          ['\xa9alb', 'album'], ['\xa9day','date'],
                          ['\xa9ART', 'artist'], ['\xa9gen', 'genre'],
-                         ['\xa9lyr', 'lyrics'], ['aART', 'albumartist'],
+                         ['\xa9lyr', 'lyrics'], ['aART', 'album-artist'],
                          ['\xa9cmt', 'comment']]:
         if source in tags:
             audio[dest] = [tags[source]]
-    if 'tracknumber' in tags:
-        if 'numberoftracks' in tags:
-            num_tracks = int(tags['numberoftracks'])
+    if 'track' in tags:
+        if 'number-of-tracks' in tags:
+            num_tracks = int(tags['number-of-tracks'])
         else:
             num_tracks = 0
-        audio['trkn'] = [(int(tags['tracknumber']), num_tracks)]
-    if 'cdnumber' in tags:
-        if 'numberofcds' in tags:
-            num_cds = int(tags['numberofcds'])
+        audio['trkn'] = [(int(tags['track']), num_tracks)]
+    if 'disc' in tags:
+        if 'number-of-discs' in tags:
+            num_disks = int(tags['number-of-discs'])
         else:
-            num_cds = 0
-        audio['disk'] = [(int(tags['cdnumber']), num_cds)]
+            num_disks = 0
+        audio['disk'] = [(int(tags['disc']), num_disks)]
     if 'cover' in tags:
         audio['covr'] = [get_mp4_coverart(tags['cover'])]
     audio.save()
