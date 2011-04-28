@@ -87,7 +87,7 @@ def parse_xml(path):
 def strip_string(string):
     if len(string.splitlines()) > 1:
         new_string = '\n'.join([i.strip() for i in string.splitlines()])
-        new_string = new_string[1:] #remove at the beginning of the string
+        new_string = new_string[1:] #remove \n at the beginning of the string
         if string[len(string)-1] != '\n':
             new_string = new_string[:len(new_string)-1]
             #remove \n at the end of the string if wasn't present before
