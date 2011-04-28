@@ -40,14 +40,14 @@ Usage
 Prittag expects a XML file and at least one audio file as arguments.
 The XML file tells prittag which tags it should write into the files and is expected to look like example.xml.
 By default prittag will perform a  white space stripping on every tag and every line of multi line tags.
-You can enable and disable this as well globally as for every single tag by adding the option "string_stripping" and setting it either to "true" or false.
+You can enable and disable this as well globally as for every single tag by adding the option "strip-space" and setting it either to "yes" or "no".
 For example:
 
 ```xml
     <?xml version="1.0" encoding="UTF-8" ?>
-    <tags string_stripping="false">
+    <tags strip-space="no">
 	<title>FooBar</title>
-	<lyrics string_stripping="true">
+	<lyrics strip-space="yes">
 	Foo
 	Bar
 	</lyrics>
