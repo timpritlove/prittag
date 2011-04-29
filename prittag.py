@@ -34,7 +34,7 @@ import mutagen.id3 as id3
 
 def parse_xml(path):
     tags = {}
-    disable_strip-space_globally = False
+    disable_strip_space_globally = False
     try:
         with open(path, 'r') as f:
             data = f.read()
@@ -49,11 +49,11 @@ def parse_xml(path):
         sys.exit(1)
         if 'strip-space' in xml.keys():
             if xml.get('strip-space') in ['No', 'no']:
-                disable_strip-space_globally = True
+                disable_strip_space_globally = True
     for child in xml.getchildren():
         key = str(child.tag)
         value = unicode(child.text)
-        if disable_strip-space_globally:
+        if disable_strip_space_globally:
             if 'strip-space' in child.keys():
                 if child.get('strip-space') in ['Yes', 'yes']:
                     value = strip_string(value)
