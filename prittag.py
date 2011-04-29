@@ -39,12 +39,12 @@ def parse_xml(path):
         with open(path, 'r') as f:
             data = f.read()
     except:
-        print 'failed to read %s' % str(path)
+        print ('failed to read %s' % str(path))
         sys.exit(1)
     try:
         xml = ElementTree.XML(data)
     except:
-        print 'parsing XML failed!'
+        print ('parsing XML failed!')
         traceback.print_exc()
         sys.exit(1)
         if 'strip-space' in xml.keys():
@@ -66,7 +66,7 @@ def parse_xml(path):
 
         tags[key] = value
     if len(tags) < len(xml.getchildren()):
-        print "Error: there are duplicate tags!"
+        print ("Error: there are duplicate tags!")
         sys.exit(1)
     for tag in tags:
         bad = False
@@ -79,8 +79,7 @@ def parse_xml(path):
             if value < 0:
                 bad = True
         if bad:
-            print 'Bad value in <%s>: "%s" is not a positive integer!' % (str(tag),
-                                                                       str(value))
+            print ('Bad value in <%s>: "%s" is not a positive integer!' % (str(tag), str(value)) )
             sys.exit(1)
     return tags
 
@@ -206,26 +205,26 @@ def get_mp4_coverart(path):
     return cover
 
 if __name__ == "__main__":
-    print '''prittag  Copyright (C) 2011 Nils Mehrtens
+    print ('''prittag  Copyright (C) 2011 Nils Mehrtens
 This program comes with ABSOLUTELY NO WARRANTY.
 This is free software, and you are welcome to redistribute it
 under certain conditions; see http://www.gnu.org/licenses/gpl.html for details.
-'''
+''')
     if len(sys.argv) < 3:
-        print 'usage: %s <xml file with tags> <file to tag> [<file to tag> ...]' % sys.argv[0]
+        print ('usage: %s <xml file with tags> <file to tag> [<file to tag> ...]' % sys.argv[0])
         sys.exit(1)
     else:
         args = sys.argv[1:]
         for path in args:
             if not os.path.exists(path):
-                print "%s doesn't exist." % path
+                print ("%s doesn't exist." % path)
                 sys.exit(1)
             elif not os.path.isfile(path):
-                print "%s is not a file." % path
+                print ("%s is not a file." % path)
                 sys.exit(1)
         config = args[0]
         files = args[1:]
         tags = parse_xml(config)
         for file in files:
-            print "Tagging %s ..." % file
+            print ("Tagging %s ..." % file)
             tag_file(file, tags)
