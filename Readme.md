@@ -20,7 +20,7 @@ It writes the following tags to multiple Ogg, MP3 or MP4 files:
 - title
 - track
 
-Additionally it can add a albumart (cover) to them.
+Additionally it can add an albumart (cover) to them and use mp4chaps to embed chapters.
 
 The name was chosen according to the amazing tool [prittorrent](https://github.com/astro/prittorrent).
 
@@ -32,8 +32,7 @@ Dependencies
 
 Installation
 ============
-Download it to a place of your choice
-Install all dependencies
+Download it to a place of your choice and install all dependencies.
 
 Usage
 =====
@@ -44,14 +43,29 @@ You can enable and disable this as well globally as for every single tag by addi
 For example:
 
 ```xml
-    <?xml version="1.0" encoding="UTF-8" ?>
-    <tags strip-space="no">
-	<title>FooBar</title>
-	<lyrics strip-space="yes">
-	Foo
-	Bar
-	</lyrics>
-    </tags>
+<?xml version="1.0" encoding="UTF-8" ?>
+<tags strip-space="no">
+    <title>FooBar</title>
+    <lyrics strip-space="yes">
+    Foo
+    Bar
+    </lyrics>
+</tags>
+```
+
+If you want prittag to use mp4chaps to embed chapters, add a chapters section into the <tags> tag like this:
+
+```xml
+<?xml version="1.0" encoding="UTF-8" ?>
+<tags>
+    <title>FooBar</title>
+    <chapters>
+        <chapter>
+            <time>00:00:00.000</time>
+            <title>Test Chapter</title>
+        </chapter>
+    </chapters>
+</tags>
 ```
 
 Call it from the command line like this: "./prittag.py foo.xml bar.mp3 bar.oga bar.m4a"

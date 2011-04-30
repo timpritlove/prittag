@@ -25,6 +25,7 @@ import base64
 import string
 import re
 import traceback
+import subprocess
 from xml.etree import ElementTree
 
 from mutagen.mp3 import MP3
@@ -52,17 +53,32 @@ def parse_xml(path):
                 disable_strip_space_globally = True
     for child in xml.getchildren():
         key = str(child.tag)
-        value = unicode(child.text)
-        if disable_strip_space_globally:
-            if 'strip-space' in child.keys():
-                if child.get('strip-space') in ['Yes', 'yes']:
-                    value = strip_string(value)
+        if key == 'chapters':
+            chapters = child.getchildren()
+            chapters2 = []
+            for chapter in chapters:
+                chapter = chapter.getchildren()
+                chapter2 = {}
+                for element in chapter:
+                    if element.tag in ['title', 'time']:
+                        chapter2[element.tag] = strip_string(unicode(element.text))
+                    else:
+                        print "Warning: malformed chapter tag '%s'" % str(element.tag)
+                if len(chapter2) == 2:
+                    chapters2.append(chapter2)
+            value = chapters2
         else:
-            if 'strip-space' in child.keys():
-                if child.get('strip-space') not in ['No', 'no']:
-                    value = strip_string(value)
+            value = unicode(child.text)
+            if disable_strip_space_globally:
+                if 'strip-space' in child.keys():
+                    if child.get('strip-space') in ['Yes', 'yes']:
+                        value = strip_string(value)
             else:
-                value = strip_string(value)
+                if 'strip-space' in child.keys():
+                    if child.get('strip-space') not in ['No', 'no']:
+                        value = strip_string(value)
+                else:
+                    value = strip_string(value)
 
         tags[key] = value
     if len(tags) < len(xml.getchildren()):
@@ -197,12 +213,35 @@ def write_tags_to_mp4(path, tags):
     if 'cover' in tags:
         audio['covr'] = [get_mp4_coverart(tags['cover'])]
     audio.save()
+    if 'chapters' in tags:
+        write_mp4_chapters(path, tags['chapters'])
 
 def get_mp4_coverart(path):
     with open(path, 'rb') as f:
         data = f.read()
     cover = MP4Cover(data)
     return cover
+
+def write_mp4_chapters(path, chapters):
+    chapter_path = os.path.splitext(path)[0] + '.chapters.txt'
+    data = ""
+    for chapter in chapters:
+        line = u"%s %s\n" % (chapter['time'], chapter['title'])
+        line = line.encode('utf-8')
+        data = ''.join((data, line))
+    if data:
+        try:
+            with open(chapter_path, 'w') as f:
+                f.write(data)
+        except:
+            print "couldn't write to %s" % chapter_path
+        else:
+            call_mp4_chaps(path)
+            os.remove(chapter_path)
+
+def call_mp4_chaps(path):
+    popen = subprocess.Popen('mp4chaps -i %s' % path, shell = True)
+    popen.wait()
 
 if __name__ == "__main__":
     print ('''prittag  Copyright (C) 2011 Nils Mehrtens
