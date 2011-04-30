@@ -61,8 +61,7 @@ def parse_xml(path):
                 chapter2 = {}
                 for element in chapter:
                     if element.tag in ['title', 'time']:
-                        chapter2[element.tag] = unicode(element.text)
-
+                        chapter2[element.tag] = strip_string(unicode(element.text))
                     else:
                         print "Warning: malformed chapter tag '%s'" % str(element.tag)
                 if len(chapter2) == 2:
