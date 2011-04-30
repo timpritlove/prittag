@@ -25,6 +25,7 @@ import base64
 import string
 import re
 import traceback
+import subprocess
 from xml.etree import ElementTree
 
 from mutagen.mp3 import MP3
@@ -214,12 +215,35 @@ def write_tags_to_mp4(path, tags):
     if 'cover' in tags:
         audio['covr'] = [get_mp4_coverart(tags['cover'])]
     audio.save()
+    if 'chapters' in tags:
+        write_mp4_chapters(path, tags['chapters'])
 
 def get_mp4_coverart(path):
     with open(path, 'rb') as f:
         data = f.read()
     cover = MP4Cover(data)
     return cover
+
+def write_mp4_chapters(path, chapters):
+    chapter_path = os.path.splitext(path)[0] + '.chapters.txt'
+    data = ""
+    for chapter in chapters:
+        line = u"%s %s\n" % (chapter['time'], chapter['title'])
+        line = line.encode('utf-8')
+        data = ''.join((data, line))
+    if data:
+        try:
+            with open(chapter_path, 'w') as f:
+                f.write(data)
+        except:
+            print "couldn't write to %s" % chapter_path
+        else:
+            call_mp4_chaps(path)
+            os.remove(chapter_path)
+
+def call_mp4_chaps(path):
+    popen = subprocess.Popen('mp4chaps -i %s' % path, shell = True)
+    popen.wait()
 
 if __name__ == "__main__":
     print '''prittag  Copyright (C) 2011 Nils Mehrtens
