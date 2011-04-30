@@ -20,7 +20,7 @@ It writes the following tags to multiple Ogg, MP3 or MP4 files:
 - title
 - track
 
-Additionally it can add a albumart (cover) to them and use mp4chaps to embed chapters.
+Additionally it can add an albumart (cover) to them and use mp4chaps to embed chapters.
 
 The name was chosen according to the amazing tool [prittorrent](https://github.com/astro/prittorrent).
 
