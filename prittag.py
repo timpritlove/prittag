@@ -52,17 +52,33 @@ def parse_xml(path):
                 disable_strip_space_globally = True
     for child in xml.getchildren():
         key = str(child.tag)
-        value = unicode(child.text)
-        if disable_strip_space_globally:
-            if 'strip-space' in child.keys():
-                if child.get('strip-space') in ['Yes', 'yes']:
-                    value = strip_string(value)
+        if key == 'chapters':
+            chapters = child.getchildren()
+            chapters2 = []
+            for chapter in chapters:
+                chapter = chapter.getchildren()
+                chapter2 = {}
+                for element in chapter:
+                    if element.tag in ['title', 'time']:
+                        chapter2[element.tag] = unicode(element.text)
+
+                    else:
+                        print "Warning: malformed chapter tag '%s'" % str(element.tag)
+                if len(chapter2) == 2:
+                    chapters2.append(chapter2)
+            value = chapters2
         else:
-            if 'strip-space' in child.keys():
-                if child.get('strip-space') not in ['No', 'no']:
-                    value = strip_string(value)
+            value = unicode(child.text)
+            if disable_strip_space_globally:
+                if 'strip-space' in child.keys():
+                    if child.get('strip-space') in ['Yes', 'yes']:
+                        value = strip_string(value)
             else:
-                value = strip_string(value)
+                if 'strip-space' in child.keys():
+                    if child.get('strip-space') not in ['No', 'no']:
+                        value = strip_string(value)
+                else:
+                    value = strip_string(value)
 
         tags[key] = value
     if len(tags) < len(xml.getchildren()):
