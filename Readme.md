@@ -32,8 +32,7 @@ Dependencies
 
 Installation
 ============
-Download it to a place of your choice
-Install all dependencies
+Download it to a place of your choice and install all dependencies.
 
 Usage
 =====
